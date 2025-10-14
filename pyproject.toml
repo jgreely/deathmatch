@@ -1,0 +1,42 @@
+[tool.poetry]
+name = "deathmatch"
+version = "1.0.0"
+description = "Five-Star Deathmatch: a Flask app to rank and flag images in a directory."
+authors = ["J. Greely <jgreely@dotclue.org>"]
+readme = "README.md"
+license = "MIT"
+packages = [
+  { include = "deathmatch", from = "src" }
+]
+
+# Ensure non-Python assets are included in distributions
+[[tool.poetry.include]]
+path = "src/deathmatch/templates/**"
+format = "wheel"
+
+[[tool.poetry.include]]
+path = "src/deathmatch/static/**"
+format = "wheel"
+
+[[tool.poetry.include]]
+path = "src/deathmatch/templates/**"
+format = "sdist"
+
+[[tool.poetry.include]]
+path = "src/deathmatch/static/**"
+format = "sdist"
+
+[[tool.poetry.include]]
+path = "CODE_OF_CONDUCT.md"
+format = "sdist"
+
+[tool.poetry.dependencies]
+python = ">=3.8,<4.0"
+flask = ">=2.3,<4.0"
+
+[tool.poetry.scripts]
+deathmatch = "deathmatch.app:main"
+
+[build-system]
+requires = ["poetry-core>=1.7.0"]
+build-backend = "poetry.core.masonry.api"

@@ -1,0 +1,138 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>Five-Star Deathmatch</title>
+<style>
+body { 
+    margin: 0; 
+    font-family: sans-serif; 
+    display: flex; 
+    flex-direction: column; 
+    height: 100vh; 
+}
+
+.topbar, .bottombar { 
+    background: #eee; 
+    padding: 4px; 
+    display: flex; 
+    justify-content: space-between; 
+    font-size: 20px; 
+}
+
+.central { 
+    position: relative; 
+    flex: 1; 
+    background: #999; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    overflow: hidden; 
+}
+
+.central img { 
+    max-width: 100%; 
+    max-height: 100%; 
+    object-fit: contain; 
+}
+
+.central.zoom { 
+    overflow: auto; 
+    justify-content: flex-start; 
+    align-items: flex-start; 
+}
+
+.central.zoom img { 
+    max-width: none; 
+    max-height: none; 
+    width: auto; 
+    height: auto; 
+    display: block; 
+}
+
+#help { 
+    position: absolute; 
+    top: 10px; 
+    right: 10px; 
+    cursor: pointer; 
+    border: 1px solid #666; 
+    border-radius: 8px; 
+    margin: 2px; 
+    padding: 6px; 
+    background: #f9f9f9; 
+    text-align: center; 
+}
+
+#helpPanel { 
+    display: none; 
+    position: absolute; 
+    top: 40px; 
+    right: 10px; 
+    background: #fff; 
+    color: #000; 
+    font-size: 16px; 
+    padding: 10px 15px; 
+    border-radius: 10px; 
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3); 
+}
+
+#helpPanel ul { 
+    margin: 0; 
+    padding-left: 20px; 
+}
+
+#helpPanel li { 
+    margin: 4px 0; 
+}
+
+.bottombar { 
+    flex-direction: column; 
+    font-size: 14px; 
+}
+
+.row { 
+    display: flex; 
+    flex: 1; 
+}
+
+.cell { 
+    flex: 1; 
+    border: 1px solid #666; 
+    border-radius: 8px; 
+    margin: 2px; 
+    text-align: center; 
+    padding: 6px; 
+    cursor: pointer; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: center; 
+    background: #f9f9f9; 
+}
+
+.cell.active { 
+    background: #ccc; 
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+    <div id="filename"></div>
+    <div id="rankflags"></div>
+    <div id="pos"></div>
+</div>
+
+<div class="central" id="central">
+    <img id="mainimg"/>
+    <div id="help">❓</div>
+    <div id="helpPanel"></div>
+</div>
+
+<div class="bottombar">
+    <div class="row" id="rankrow"></div>
+    <div class="row" id="flagrow"></div>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
