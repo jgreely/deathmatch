@@ -8,11 +8,12 @@ If IMAGE_DIR is omitted, the current working directory is used.
 """
 from __future__ import annotations
 
-import argparse
+import click
 import logging
 import os
 import sys
 import threading
+import time
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -23,6 +24,8 @@ SUPPORTED_EXTENSIONS = (".png", ".jpg", ".jpeg")
 RANK_RANGE = (-1, 5)  # -1 for rejected, 0-5 for star ratings
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 5000
+
+url = 'http://127.0.0.1:5000'
 
 # Logging
 logging.basicConfig(
@@ -153,25 +156,39 @@ def create_app(base_dir: Path) -> Flask:
 
     return app
 
+def launchurl():
+    time.sleep(1)
+    click.launch(url)
 
-def main(argv: List[str] | None = None) -> None:
-    """CLI entry point for the deathmatch app."""
-    argv = list(argv) if argv is not None else sys.argv[1:]
+@click.command()
+@click.option('-h', '--host', type=str,
+    default=DEFAULT_HOST, help=f"Host to bind (default: {DEFAULT_HOST})")
+@click.option('-p', '--port', type=int,
+    default=DEFAULT_PORT, help=f"Port (default: {DEFAULT_PORT})")
+@click.option('-d', '--debug', is_flag=True,
+    help="Enable Flask debug mode")
+@click.argument('directory', nargs=-1)
+def main(directory, host, port, debug):
+    '''
+    Five-Star Deathmatch: 
 
-    parser = argparse.ArgumentParser(description="Five-Star Deathmatch Flask app")
-    parser.add_argument(
-        "directory",
-        nargs="?",
-        default=os.getcwd(),
-        help="Image directory to manage (default: current working directory)",
-    )
-    parser.add_argument("--host", default=DEFAULT_HOST, help="Host to bind (default: 127.0.0.1)")
-    parser.add_argument("--port", type=int, default=DEFAULT_PORT, help="Port (default: 5000)")
-    parser.add_argument("--debug", action="store_true", help="Enable Flask debug mode")
+    A Flask web application for ranking and flagging images in a
+    directory. This tool provides a simple lightweight interface to view,
+    rank, and flag images using keyboard shortcuts.
 
-    args = parser.parse_args(argv)
+    Usage:
 
-    base_dir = Path(args.directory).resolve()
+        deathmatch [DIRECTORY]
+
+        poetry run deathmatch [DIRECTORY]
+
+    If DIRECTORY is omitted, the current working directory is used.
+    '''
+    if directory and directory[0]:
+        directory = directory[0]
+    else:
+        directory = os.getcwd()
+    base_dir = Path(directory).resolve()
     if not base_dir.exists() or not base_dir.is_dir():
         print(f"Error: directory not found: {base_dir}", file=sys.stderr)
         sys.exit(2)
@@ -180,8 +197,9 @@ def main(argv: List[str] | None = None) -> None:
     logger.info("Base directory: %s", base_dir)
 
     app = create_app(base_dir)
-    app.run(args.host, args.port, debug=args.debug)
-
+    url = f'http://{host}:{port}'
+    threading.Thread(target=launchurl).start()
+    app.run(host, port, debug=debug)
 
 if __name__ == "__main__":  # pragma: no cover
     main()

@@ -114,6 +114,7 @@ Clicking on any of the buttons excludes matching images from the display.
 ## Bugs
 
 If all images are filtered out, refreshing with SPACEBAR does not work.
+You have to remove some filtering and then hit a navigation key.
 
 ## Install (Poetry)
 
