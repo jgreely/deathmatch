@@ -20,7 +20,7 @@ from typing import Any, Dict, List
 from flask import Flask, abort, jsonify, render_template, request, send_file
 
 # Configuration constants
-SUPPORTED_EXTENSIONS = (".png", ".jpg", ".jpeg")
+SUPPORTED_EXTENSIONS = (".png", ".jpg", ".jpeg", ".webp")
 RANK_RANGE = (-1, 5)  # -1 for rejected, 0-5 for star ratings
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 5000
