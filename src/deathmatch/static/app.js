@@ -277,51 +277,15 @@ function toggleFlag(fl) {
  * Handle keyboard shortcuts
  */
 document.addEventListener("keydown", ev => {
-    let list = filteredFiles();
-    if (list.length == 0) return;
-    
+    // State-management shortcuts (always available)
     switch (ev.key) {
-        case "ArrowLeft":
-            index = (index - 1 + list.length) % list.length;
-            render();
-            break;
-            
-        case "ArrowRight":
-            index = (index + 1) % list.length;
-            render();
-            break;
-            
-        case "ArrowUp":
-            index = 0;
-            render();
-            break;
-            
-        case "ArrowDown":
-            index = list.length - 1;
-            render();
-            break;
-            
-        case "x":
-        case "X":
-            updateRank(-1);
-            break;
-            
-        case "0":
-        case "1":
-        case "2":
-        case "3":
-        case "4":
-        case "5":
-            updateRank(parseInt(ev.key));
-            break;
-            
         case "r":
         case "R":
             filters = { ranks: new Set(), flags: new Set() };
             render();
             buildBottom();
-            break;
-            
+            return;
+
         case "z":
         case "Z":
             zoom = !zoom;
@@ -332,16 +296,56 @@ document.addEventListener("keydown", ev => {
             } else {
                 central.classList.remove("zoom");
             }
-            break;
-            
+            return;
+
         case " ":
             fetch("/api/reload", { method: "POST" })
                 .then(() => fetchState());
-            break;
-            
+            return;
+
         case "l":
         case "L":
             copyListToClipboard();
+            return;
+    }
+
+    // Image-dependent shortcuts (require at least one image)
+    let list = filteredFiles();
+    if (list.length == 0) return;
+
+    switch (ev.key) {
+        case "ArrowLeft":
+            index = (index - 1 + list.length) % list.length;
+            render();
+            break;
+
+        case "ArrowRight":
+            index = (index + 1) % list.length;
+            render();
+            break;
+
+        case "ArrowUp":
+            index = 0;
+            render();
+            break;
+
+        case "ArrowDown":
+            index = list.length - 1;
+            render();
+            break;
+
+        case "x":
+        case "X":
+            updateRank(-1);
+            break;
+
+        case "0":
+        case "1":
+        case "2":
+        case "3":
+        case "4":
+        case "5":
+            updateRank(parseInt(ev.key));
             break;
 
         default:
