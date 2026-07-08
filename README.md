@@ -130,7 +130,7 @@ poetry run deathmatch [image_directory]
 ```
 poetry build
 cd dist
-pip3 install deathmatch-1.0.0-py3-none-any.whl
+pip3 install deathmatch-1.0.1-py3-none-any.whl
 ```
 
 ## Package Structure

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "deathmatch"
-version = "1.0.0"
+version = "1.0.1"
 description = "Five-Star Deathmatch: a Flask app to rank and flag images in a directory."
 authors = ["J. Greely <jgreely@dotclue.org>"]
 readme = "README.md"
