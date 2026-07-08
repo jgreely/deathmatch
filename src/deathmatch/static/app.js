@@ -9,10 +9,11 @@
  */
 
 // Application state
-let state = { files: [], meta: {} };
+let state = { files: [], meta: {}, base_dir: "" };
 let index = 0;
 let filters = { ranks: new Set(), flags: new Set() };
 let zoom = false;
+let stateHistory = [];
 
 // DOM elements
 const mainimg = document.getElementById("mainimg");
@@ -178,6 +179,28 @@ function copyListToClipboard() {
 }
 
 /**
+ * Copy the current filtered list with absolute paths to the clipboard, LF-delimited.
+ */
+function copyListToClipboardWithAbsolutePaths() {
+    const list = filteredFiles();
+    const paths = list.map(fname => {
+        if (state.base_dir) {
+            return state.base_dir + "/" + fname;
+        }
+        return fname;
+    });
+    const text = paths.join("\n") + "\n";
+    if (!text || text.trim() === "\n") {
+        return; // nothing to copy
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).catch(() => fallbackClipboardCopy(text));
+    } else {
+        fallbackClipboardCopy(text);
+    }
+}
+
+/**
  * Fallback clipboard copy using a temporary textarea element.
  */
 function fallbackClipboardCopy(text) {
@@ -190,6 +213,86 @@ function fallbackClipboardCopy(text) {
     ta.select();
     try { document.execCommand('copy'); } catch (e) { /* ignore */ }
     document.body.removeChild(ta);
+}
+
+/**
+ * Show modal to jump to a specific page/image
+ */
+function showGoToPageModal() {
+    let list = filteredFiles();
+    if (list.length === 0) return;
+
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    `;
+
+    const content = document.createElement('div');
+    content.style.cssText = `
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        text-align: center;
+    `;
+
+    const totalPages = list.length;
+    content.innerHTML = `
+        <p>Go to page (1-${totalPages}):</p>
+        <input type="number" id="pageInput" min="1" max="${totalPages}" value="${index + 1}" style="padding: 8px; font-size: 16px; width: 100px;">
+        <p style="font-size: 12px; color: #666;">Valid range: 1 to ${totalPages}</p>
+    `;
+
+    modal.appendChild(content);
+    document.body.appendChild(modal);
+
+    const input = document.getElementById('pageInput');
+    input.focus();
+    input.select();
+
+    function closeModal() {
+        document.body.removeChild(modal);
+    }
+
+    function goToPage() {
+        const pageNum = parseInt(input.value);
+        if (pageNum >= 1 && pageNum <= totalPages) {
+            index = pageNum - 1;
+            render();
+            closeModal();
+        }
+    }
+
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') goToPage();
+        if (e.key === 'Escape') closeModal();
+    });
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+}
+
+/**
+ * Undo the most recent ranking/flag change
+ */
+function undoLastChange() {
+    fetch("/api/undo", { method: "POST" })
+        .then(r => r.json())
+        .then(js => {
+            if (js.success) {
+                fetchState();
+            }
+        });
 }
 
 /**
@@ -308,8 +411,21 @@ document.addEventListener("keydown", ev => {
             return;
 
         case "l":
-        case "L":
             copyListToClipboard();
+            return;
+
+        case "L":
+            copyListToClipboardWithAbsolutePaths();
+            return;
+
+        case "g":
+        case "G":
+            showGoToPageModal();
+            return;
+
+        case "u":
+        case "U":
+            undoLastChange();
             return;
     }
 
@@ -373,7 +489,10 @@ help.onclick = () => {
         "<li>A–F : Toggle flags</li>" +
         "<li>R : Reset filters</li>" +
         "<li>Z : Toggle zoom</li>" +
-        "<li>L : Copy filtered list to clipboard</li>" +
+        "<li>l : Copy filtered list (relative paths)</li>" +
+        "<li>L : Copy filtered list (absolute paths)</li>" +
+        "<li>G : Go to page number</li>" +
+        "<li>U : Undo last change</li>" +
         "<li>Space : Reload state</li>" +
         "</ul>";
 };

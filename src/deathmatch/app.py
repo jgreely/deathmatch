@@ -9,6 +9,7 @@ If IMAGE_DIR is omitted, the current working directory is used.
 from __future__ import annotations
 
 import click
+import copy
 import logging
 import os
 import sys
@@ -40,17 +41,19 @@ RANK_FILE: Path
 state_lock: threading.Lock
 files: List[str]
 meta: Dict[str, Dict[str, Any]]
+meta_history: List[Dict[str, Dict[str, Any]]]
 
 
 def create_app(base_dir: Path) -> Flask:
     """Application factory. Sets up Flask with proper folders and routes."""
-    global BASE_DIR, RANK_FILE, state_lock, files, meta
+    global BASE_DIR, RANK_FILE, state_lock, files, meta, meta_history
 
     BASE_DIR = base_dir.resolve()
     RANK_FILE = BASE_DIR / "_rank.txt"
     state_lock = threading.Lock()
     files = []
     meta = {}
+    meta_history = []
 
     here = Path(__file__).parent.resolve()
     app = Flask(
@@ -125,15 +128,19 @@ def create_app(base_dir: Path) -> Flask:
                 fn: {"rank": e.get("rank", 0), "flags": sorted(e.get("flags", []))}
                 for fn, e in meta.items()
             }
-            return jsonify({"files": files, "meta": safe_meta})
+            return jsonify({"files": files, "meta": safe_meta, "base_dir": str(BASE_DIR)})
 
     @app.route("/api/update", methods=["POST"])
     def api_update():
+        global meta_history
         data = request.json or {}
         fname = data.get("file")
         if fname not in meta:
             abort(400)
         with state_lock:
+            meta_history.append(copy.deepcopy(meta))
+            if len(meta_history) > 50:
+                meta_history.pop(0)
             if "rank" in data:
                 meta[fname]["rank"] = data["rank"]
             if "toggle_flag" in data:
@@ -149,6 +156,16 @@ def create_app(base_dir: Path) -> Flask:
     def api_reload():
         with state_lock:
             load_state()
+        return jsonify(success=True)
+
+    @app.route("/api/undo", methods=["POST"])
+    def api_undo():
+        global meta, meta_history
+        if not meta_history:
+            return jsonify(success=False, error="Nothing to undo")
+        with state_lock:
+            meta = meta_history.pop()
+            save_state()
         return jsonify(success=True)
 
     # Initial load
