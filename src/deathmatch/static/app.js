@@ -197,21 +197,22 @@ function fallbackClipboardCopy(text) {
  */
 function render() {
     let list = filteredFiles();
-    
+
     if (list.length == 0) {
+        index = 0;
         mainimg.src = "";
         filenameDiv.textContent = "";
         rankflagsDiv.textContent = "";
         posDiv.textContent = "0/0";
         return;
     }
-    
-    if (index >= list.length) index = 0;
-    
+
+    if (index < 0 || index >= list.length) index = 0;
+
     let fname = list[index];
     mainimg.src = "/image/" + encodeURIComponent(fname);
     filenameDiv.textContent = fname;
-    
+
     let m = state.meta[fname] || { rank: 0, flags: [] };
     let rankDisp = (m.rank == -1 ? "❌" : (m.rank == 0 ? "⚪️" : "⭐️".repeat(m.rank)));
     rankflagsDiv.textContent = rankDisp + " " + m.flags.sort().join("");
@@ -224,11 +225,14 @@ function render() {
 function nextValidIndex(oldfname) {
     let list = filteredFiles();
     let i = list.indexOf(oldfname);
-    
-    if (i == -1) {
+
+    if (list.length == 0) {
+        index = 0;
+    } else if (i == -1) {
         if (index >= list.length) index = list.length - 1;
     } else {
         index = i + 1;
+        if (index >= list.length) index = 0;
     }
 }
 
