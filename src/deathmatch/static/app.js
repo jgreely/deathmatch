@@ -384,6 +384,11 @@ function toggleFlag(fl) {
  * Handle keyboard shortcuts
  */
 document.addEventListener("keydown", ev => {
+    // Don't process shortcuts if user is typing in an input field
+    if (document.activeElement && document.activeElement.tagName === "INPUT") {
+        return;
+    }
+
     // State-management shortcuts (always available)
     switch (ev.key) {
         case "r":
